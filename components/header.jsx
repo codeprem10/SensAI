@@ -15,12 +15,26 @@ const Header = async() => {
     supports-[backdrop-filter]:bg-background/60 '>
       <nav className='w-full px-4 flex h-16 items-center justify-between'>
 
-        <Link href='/'>
+      {/* Logo on header */}
+        {/* <Link href='/'>
         <Image
-          src="/logo.png" alt="Sensai logo" width={200} height={60}
+          src="/logo3.png" alt="Sensai logo" width={300} height={80}
           className="h-12 py-1 w-auto object-contain"
           />
-        </Link>
+        </Link> */}
+
+      <Link href="/">
+      <Image
+        src="/logo3.png"
+        alt="Path360 Logo"
+        width={80}    // actual image width
+        height={30}    // actual image height
+        className="py-1 object-contain"  // removed fixed h-12 and w-auto
+        priority       // optional: makes the logo load faster
+        />
+      </Link>
+       
+
 
 
         <div className='items-center space-x-2 flex md:space-x-4'>

@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
  
@@ -93,7 +87,7 @@ model IndustryInsight{
   topSkills             String[]  // in-demand skills
 
   //market conditions
-  marketOutLook        MarketOutLook  //positive , neutral , negative 
+  marketOutlook        MarketOutLook  //positive , neutral , negative 
   keyTrends              String[]  //array of current industry trends
 
   //learning suggestions
@@ -106,13 +100,17 @@ model IndustryInsight{
 }
 
 enum DemandLevel{
-  HIGH 
-  MEDIUM 
-  LOW
+  High 
+  Medium 
+  Low
 }
 
 enum MarketOutLook{
-  POSITIVE
-  NEUTRAL
-  NEGATIVE
+  Positive
+  Neutral
+  Negative
 }
+
+
+
+

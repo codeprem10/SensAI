@@ -35,7 +35,7 @@ export default function RootLayout({ children }) {
           {/* footer */}
           <footer  className="bg-muted/50 py-12">
             <div className="container mx-auto text-center px-4 text-gray-200">
-              <p>Made by Prem</p>
+              <p>Made by PGKT</p>
             </div>
           </footer>
         </ThemeProvider>

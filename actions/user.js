@@ -1,8 +1,10 @@
 'use server';
 
-import { db } from "@/lib/prisma";
+
+import {db} from '@/lib/prisma'
 import { auth } from "@clerk/nextjs/server";
 import { Select } from "@radix-ui/react-select";
+import { generateAIinsights } from "./dashboard";
 
 //to find user
 export async function updateUser(data){
@@ -30,19 +32,32 @@ const user = await db.user.findUnique({
             });
     //2.if industry does not exists , fill it with default values - later use ai to fill those values
     if(!industryInsight){
-        industryInsight = await tx.industryInsight.create({
-            data : {
-                industry : data.industry,
-                salaryRanges : [],
-                growthRate : 0 ,
-                demandLevel :'MEDIUM',
-                topSkills :  [],
-                marketOutLook  : 'NEUTRAL',
-                keyTrends : [],
-                recommendedSkills :[],
-                nextUpdate : new Date(Date.now() + 7*24*60*60*1000)
-            }
-        })
+
+        // This is replaced by AI
+        // industryInsight = await tx.industryInsight.create({
+        //     data : {
+        //         industry : data.industry,
+        //         salaryRanges : [],
+        //         growthRate : 0 ,
+        //         demandLevel :'MEDIUM',
+        //         topSkills :  [],
+        //         marketOutLook  : 'NEUTRAL',
+        //         keyTrends : [],
+        //         recommendedSkills :[],
+        //         nextUpdate : new Date(Date.now() + 7*24*60*60*1000)
+        //     }
+        // })
+
+        // AI -generated:
+         const insights = await generateAIinsights(data.industry);
+        
+             industryInsight = await db.industryInsight.create({
+                    data:{
+                        industry:data.industry,
+                        ...insights,
+                        nextUpdate:new Date(Date.now() + 7*24*60*60*1000),
+                    }
+        });
     }    
     //3.update the user
     const updatedUser = await tx.user.update({
