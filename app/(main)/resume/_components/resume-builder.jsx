@@ -33,10 +33,18 @@ const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
   ssr: false,
 });
 
+// const Markdown = dynamic(
+//   () => import("@uiw/react-md-editor").then((m) => m.Markdown),
+//   { ssr: false }
+// );
+
+
+// chatgpt solved error
 const Markdown = dynamic(
-  () => import("@uiw/react-md-editor").then((m) => m.Markdown),
+  () => import("@uiw/react-markdown-preview").then(mod => mod.default),
   { ssr: false }
 );
+
 
 // //////////////////////////////////////
 
@@ -143,7 +151,7 @@ export default function ResumeBuilder({ initialContent }) {
   //   } catch (error) {
   //     console.error("PDF generation error:", error);
   //   } finally {
-  //     setIsGenerating(false);
+  //     setIsGenerating(false); 
   //   }
   // };
 
@@ -170,7 +178,7 @@ export default function ResumeBuilder({ initialContent }) {
     console.error("PDF generation error:", error);
   } finally {
     setIsGenerating(false);
-  }
+  }  
 };
 /////////////////////
 

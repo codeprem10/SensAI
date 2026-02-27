@@ -6,6 +6,7 @@ import { Button } from './ui/button';
 import { ChevronDown, FileText, GraduationCap, LayoutDashboard, PenBox, StarsIcon } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { checkUser } from '@/lib/checkUser';
+import { Briefcase } from "lucide-react";
 
 const Header = async() => {
 
@@ -75,6 +76,14 @@ const Header = async() => {
               Interview
           </Link>
         </DropdownMenuItem>
+
+        {/* ⭐ UPDATED BY CHATGPT ON 24 FEB 2026 */}
+<DropdownMenuItem>
+  <Link href={"/apply-jobs"} className='flex items-center gap-2'>
+      <Briefcase className='h-4 w-4'/>
+      Apply For Job
+  </Link>
+</DropdownMenuItem>
       
         </DropdownMenuContent>
       </DropdownMenu>

@@ -12,6 +12,7 @@
   "dependencies": {
     "@clerk/nextjs": "^6.23.3",
     "@clerk/themes": "^2.2.54",
+    "@fontsource/inter": "^5.2.8",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.0",
     "@prisma/client": "^6.12.0",
@@ -46,6 +47,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/html2pdf.js": "^0.10.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
     "prisma": "^6.12.0",
