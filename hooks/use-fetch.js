@@ -10,7 +10,7 @@ const[error,setError] = useState(null);
 
 const fn = async(...args)=>{
     setLoading(true);
-    setError(true);
+    setError(null);
 
     try {
         const response = await cb(...args);

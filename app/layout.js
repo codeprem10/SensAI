@@ -6,7 +6,15 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { Toaster } from "sonner";
 
-const inter = Inter({subset:["latin"]});
+// chatgpt
+// import '@fontsource/inter/400.css'
+// import '@fontsource/inter/600.css'
+// import '@fontsource/inter/700.css'
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 
 export const metadata = {

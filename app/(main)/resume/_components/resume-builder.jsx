@@ -33,10 +33,22 @@ const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
   ssr: false,
 });
 
+// const Markdown = dynamic(
+//   () => import("@uiw/react-md-editor").then((m) => m.Markdown),
+//   { ssr: false }
+// );
+
+
+
+
+
+
+// chatgpt solved error
 const Markdown = dynamic(
-  () => import("@uiw/react-md-editor").then((m) => m.Markdown),
+  () => import("@uiw/react-markdown-preview").then(mod => mod.default),
   { ssr: false }
 );
+
 
 // //////////////////////////////////////
 
@@ -45,6 +57,12 @@ export default function ResumeBuilder({ initialContent }) {
   const [previewContent, setPreviewContent] = useState(initialContent);
   const { user } = useUser();
   const [resumeMode, setResumeMode] = useState("preview");
+  //chatgpt
+const [mounted, setMounted] = useState(false);
+
+useEffect(() => {
+  setMounted(true);
+}, []);
 
   const {
     control,
@@ -80,11 +98,16 @@ export default function ResumeBuilder({ initialContent }) {
 
   // Update preview content when form values change
   useEffect(() => {
-    if (activeTab === "edit") {
-      const newContent = getCombinedContent();
-      setPreviewContent(newContent ? newContent : initialContent);
-    }
-  }, [formValues, activeTab]);
+  const newContent = getCombinedContent();
+  setPreviewContent(newContent ? newContent : initialContent);
+}, [formValues]);
+// console.log("EXPERIENCE:", formValues.experience);
+  // useEffect(() => {
+  //   if (activeTab === "edit") {
+  //     const newContent = getCombinedContent();
+  //     setPreviewContent(newContent ? newContent : initialContent);
+  //   }
+  // }, [formValues, activeTab]);
 
   // Handle save result
   useEffect(() => {
@@ -127,52 +150,100 @@ export default function ResumeBuilder({ initialContent }) {
 
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // const generatePDF = async () => {
-  //   setIsGenerating(true);
-  //   try {
-  //     const element = document.getElementById("resume-pdf");
-  //     const opt = {
-  //       margin: [15, 15],
-  //       filename: "resume.pdf",
-  //       image: { type: "jpeg", quality: 0.98 },
-  //       html2canvas: { scale: 2 },
-  //       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-  //     };
-
-  //     await html2pdf().set(opt).from(element).save();
-  //   } catch (error) {
-  //     console.error("PDF generation error:", error);
-  //   } finally {
-  //     setIsGenerating(false);
-  //   }
-  // };
-
-
-
-  // chatgpt solved error
-  ///////////////////
   const generatePDF = async () => {
-  setIsGenerating(true);
-  try {
-    const html2pdf = (await import("html2pdf.js")).default;
+    setIsGenerating(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      const { marked } = await import("marked");
 
-    const element = document.getElementById("resume-pdf");
-    const opt = {
-      margin: [15, 15],
-      filename: "resume.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-    };
+      // Convert markdown directly to HTML without Tailwind styles
+      const htmlContent = await marked(previewContent);
 
-    await html2pdf().set(opt).from(element).save();
-  } catch (error) {
-    console.error("PDF generation error:", error);
-  } finally {
-    setIsGenerating(false);
-  }
-};
-/////////////////////
+      // Create a clean container with no Tailwind/problematic classes
+      const container = document.createElement("div");
+      container.style.cssText = `
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.8;
+        color: #000;
+        background: #fff;
+        padding: 20px;
+        margin: 0;
+        width: 100%;
+      `;
+      container.innerHTML = htmlContent;
+
+      // Fix all elements to have basic compatible styles
+      const allElements = container.querySelectorAll("*");
+      allElements.forEach((elem) => {
+        elem.style.color = "#000";
+        elem.style.fontFamily = "inherit";
+        elem.style.lineHeight = "inherit";
+        elem.style.backgroundColor = "transparent";
+        elem.removeAttribute("class");
+        elem.removeAttribute("data-color-mode");
+      });
+
+      // Style specific elements
+      const headings = container.querySelectorAll("h1, h2, h3, h4, h5, h6");
+      headings.forEach((h) => {
+        h.style.marginTop = "15px";
+        h.style.marginBottom = "10px";
+        h.style.fontWeight = "bold";
+        h.style.color = "#000";
+      });
+
+      const h2Elements = container.querySelectorAll("h2");
+      h2Elements.forEach((h) => {
+        h.style.fontSize = "20px";
+        h.style.borderBottom = "2px solid #333";
+        h.style.paddingBottom = "5px";
+      });
+
+      const links = container.querySelectorAll("a");
+      links.forEach((a) => {
+        a.style.color = "#0066cc";
+        a.style.textDecoration = "underline";
+      });
+
+      const opt = {
+        margin: [15, 15],
+        filename: "resume.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          backgroundColor: "#fff",
+          imageTimeout: 0,
+          ignoreElements: (element) => {
+            // Ignore script and style tags to prevent css parsing errors
+            return element.tagName === 'SCRIPT' || element.tagName === 'STYLE' || element.tagName === 'NOSCRIPT';
+          },
+          onclone: (clonedDocument) => {
+            // Remove all stylesheets from the cloned document
+            const sheets = clonedDocument.querySelectorAll("style, link[rel='stylesheet']");
+            sheets.forEach(sheet => sheet.remove());
+          }
+        },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      };
+
+      // Pass container with onclone option
+      const worker = html2pdf().set(opt);
+      
+      await worker
+        .from(container)
+        .save();
+        
+      toast.success("Resume downloaded successfully!");
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast.error(error.message || "Failed to generate PDF");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
 
   const onSubmit = async (data) => {
@@ -437,12 +508,15 @@ export default function ResumeBuilder({ initialContent }) {
             </div>
           )}
           <div className="border rounded-lg">
-            <MDEditor
-              value={previewContent}
-              onChange={setPreviewContent}
-              height={800}
-              preview={resumeMode}
-            />
+            
+           {mounted && (
+  <MDEditor
+    value={previewContent}
+    onChange={setPreviewContent}
+    height={800}
+    preview={resumeMode}
+  />
+)}
           </div>
           <div className="hidden">
             <div id="resume-pdf">
@@ -455,10 +529,12 @@ export default function ResumeBuilder({ initialContent }) {
               /> */}
 
               {/* chatgpt solved error */}
-              <Markdown
-                  source={previewContent}
-                   style={{ background: "white", color: "black" }}
-              />
+              {mounted && (
+  <Markdown
+    source={previewContent}
+    style={{ background: "white", color: "black" }}
+  />
+)}
             </div>
           </div>
         </TabsContent>

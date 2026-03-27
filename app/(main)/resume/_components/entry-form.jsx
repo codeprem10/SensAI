@@ -58,14 +58,17 @@ export function EntryForm({ type, entries, onChange }) {
       endDate: data.current ? "" : formatDisplayDate(data.endDate),
     };
 
-    onChange([...entries, formattedEntry]);
+    // onChange([...entries, formattedEntry]);
+    onChange([...(entries || []), formattedEntry]);
+
 
     reset();
     setIsAdding(false);
   });
 
   const handleDelete = (index) => {
-    const newEntries = entries.filter((_, i) => i !== index);
+    // const newEntries = entries.filter((_, i) => i !== index);
+    const newEntries = (entries || []).filter((_, i) => i !== index);
     onChange(newEntries);
   };
 

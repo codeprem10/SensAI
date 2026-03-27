@@ -1,6 +1,6 @@
 "use client";
 import {Brain, Briefcase, LineChart, TrendingDown, TrendingUp } from 'lucide-react';
-import React from 'react'
+import React, { useEffect, useState } from 'react' // ⭐ UPDATED BY CHATGPT ON 24 FEB 2026
 import {formatDistanceToNow , format} from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +9,28 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 
 
 const DashboardView = ({insights}) => {
+  // ⭐ UPDATED BY CHATGPT ON 24 FEB 2026
+    const [jobs, setJobs] = useState([]);
+
+
+    // ⭐ UPDATED BY CHATGPT ON 24 FEB 2026
+useEffect(() => {
+
+    async function fetchJobs() {
+        try {
+            const res = await fetch(`/api/jobs?role=${insights.industry}`);
+            const data = await res.json();
+            setJobs(data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    fetchJobs();
+
+}, []);
+
+////////////////////////////////////////////////
     const salaryData = insights.salaryRanges.map((range)=>({
         name:range.role,
         min:range.min/1000,
@@ -54,7 +76,7 @@ const DashboardView = ({insights}) => {
   return (
     <div className='space-y-6'>
         <div className='flex , justify-between items-center'>
-            <Badge varient = "outline">Last Updated : {lastUpdatedDate}</Badge>
+            <Badge variant = "outline">Last Updated : {lastUpdatedDate}</Badge>
         </div>
 
          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
@@ -206,6 +228,43 @@ const DashboardView = ({insights}) => {
             </div>
           </CardContent>
         </Card>
+
+
+        {/* ⭐ UPDATED BY CHATGPT ON 24 FEB 2026 */}
+<Card>
+  <CardHeader>
+    <CardTitle>🔥 Job Opportunities</CardTitle>
+  </CardHeader>
+
+  <CardContent>
+
+    {jobs.length === 0 && (
+      <p className="text-sm text-muted-foreground">Loading jobs...</p>
+    )}
+
+    {jobs.slice(0,6).map(job => (
+      <div key={job.job_id} className="border p-3 rounded-lg mb-3">
+
+        <h3 className="font-semibold">{job.job_title}</h3>
+
+        <p className="text-sm text-muted-foreground">
+          {job.employer_name}
+        </p>
+
+        <a
+          href={job.job_apply_link}
+          target="_blank"
+          className="text-blue-500 text-sm"
+        >
+          Apply →
+        </a>
+
+      </div>
+    ))}
+
+  </CardContent>
+</Card>
+
       </div>
 
     </div>
@@ -213,6 +272,8 @@ const DashboardView = ({insights}) => {
 }
 
 export default DashboardView
+
+
 
 
 
