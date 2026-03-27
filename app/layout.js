@@ -11,7 +11,10 @@ import { Toaster } from "sonner";
 // import '@fontsource/inter/600.css'
 // import '@fontsource/inter/700.css'
 
-const inter = Inter({subset:["latin"]});
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 
 export const metadata = {
