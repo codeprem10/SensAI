@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 import { Button } from './ui/button';
-import { ChevronDown, FileText, GraduationCap, LayoutDashboard, PenBox, StarsIcon } from 'lucide-react';
+import { ChevronDown, FileText, GraduationCap, LayoutDashboard, PenBox, StarsIcon, Mic } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { checkUser } from '@/lib/checkUser';
 import { Briefcase } from "lucide-react";
@@ -26,12 +26,12 @@ const Header = async() => {
 
       <Link href="/">
       <Image
-        src="/logo3.png"
-        alt="Path360 Logo"
-        width={80}    // actual image width
-        height={30}    // actual image height
-        className="py-1 object-contain"  // removed fixed h-12 and w-auto
-        priority       // optional: makes the logo load faster
+        src="/sensai-logo.svg"
+        alt="Path-360 Logo"
+        width={140}
+        height={45}
+        className="py-1 object-contain"
+        priority
         />
       </Link>
        
@@ -74,6 +74,12 @@ const Header = async() => {
           <Link  href={"/interview"} className='flex items-center gap-2'>
               <GraduationCap className='h-4 w-4'/>
               Interview
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <Link  href={"/interview-ai"} className='flex items-center gap-2'>
+              <Mic className='h-4 w-4'/>
+              AI Voice Interview
           </Link>
         </DropdownMenuItem>
 

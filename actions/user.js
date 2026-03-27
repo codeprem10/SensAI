@@ -93,14 +93,6 @@ export async function getUserOnboardingStatus(data){
     const {userId} = await auth();
     if(!userId) throw new Error('Unauthorized');
 
-//to find user in db
-const user = await db.user.findUnique({
-    where:{
-        clerkUserId : userId,
-    }
-});
- if(!user) throw new Error('user not found');
-
  try {
     const user = await db.user.findUnique({
         where:{
@@ -111,12 +103,14 @@ const user = await db.user.findUnique({
         }
        })
 
+       if(!user) throw new Error('user not found');
+
        //it will return true if user is onboarded or false if user not onboarded
        return {
         isOnboarded : !!user?.industry
        }
  } catch (error) {
     console.error("Error checking onboarding status: " , error.message);
-    throw new Error("Failed to check unboarding status");
+    throw new Error("Failed to check onboarding status");
  }
 }

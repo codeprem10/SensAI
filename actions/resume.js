@@ -14,15 +14,19 @@ function getGeminiModel() {
 
 export async function saveResume(content) {
   const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) throw new Error("User not found");
+  console.log("Auth userId:", userId);
+  
+  if (!userId) throw new Error("Unauthorized - No user authenticated");
 
   try {
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+
+    console.log("User found:", user?.id);
+    
+    if (!user) throw new Error("User not found in database");
+
     const resume = await db.resume.upsert({
       where: {
         userId: user.id,
@@ -33,14 +37,16 @@ export async function saveResume(content) {
       create: {
         userId: user.id,
         content,
+        atsScore: 0, // Default ATS score - will be calculated later
       },
     });
 
+    console.log("Resume saved successfully:", resume.id);
     revalidatePath("/resume");
     return resume;
   } catch (error) {
     console.error("Error saving resume:", error);
-    throw new Error("Failed to save resume");
+    throw new Error(`Failed to save resume: ${error.message}`);
   }
 }
 
