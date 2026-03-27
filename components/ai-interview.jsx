@@ -58,10 +58,17 @@ const AIInterview = () => {
 
   // Refs
   const recognitionRef = useRef(null);
-  const synthRef = useRef(window.speechSynthesis);
+  const synthRef = useRef(null);
 
   // Initialize Web Speech API
   useEffect(() => {
+    // Initialize speechSynthesis on client side only
+    if (typeof window !== "undefined") {
+      synthRef.current = window.speechSynthesis;
+    }
+
+    if (typeof window === "undefined") return;
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
