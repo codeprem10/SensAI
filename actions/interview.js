@@ -247,11 +247,19 @@ export async function generateQuiz() {
   } catch (error) {
     console.error("Error generating quiz:", error.message || error);
     
-    // Re-throw with user-friendly message
-    if (error.message.includes("GEMINI_API_KEY")) {
-      throw new Error("AI service is not configured. Please contact support.");
+    // If API quota exceeded or API error, use mock quiz as fallback
+    if (
+      error.message?.includes("429") || 
+      error.message?.includes("quota") ||
+      error.message?.includes("Too Many Requests") ||
+      error.message?.includes("GEMINI_API_KEY")
+    ) {
+      console.warn("⚠️ Using mock quiz due to API quota limit or configuration issue");
+      const mockQuiz = getMockQuiz(user?.industry);
+      return mockQuiz;
     }
     
+    // For other errors, throw
     throw error;
   }
 }
