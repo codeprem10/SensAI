@@ -152,6 +152,8 @@ function getMockQuiz(industry) {
 }
 
 export async function generateQuiz() {
+  let user = null; // Declare user outside try-catch for access in catch block
+  
   try {
     // Check API key
     if (!process.env.GEMINI_API_KEY) {
@@ -163,7 +165,7 @@ export async function generateQuiz() {
     if (!userId) throw new Error("Unauthorized - Please log in");
 
     // Fetch user with error handling
-    const user = await db.user.findUnique({
+    user = await db.user.findUnique({
       where: { clerkUserId: userId },
       select: {
         industry: true,
