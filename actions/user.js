@@ -94,7 +94,8 @@ export async function getUserOnboardingStatus(data){
     if(!userId) throw new Error('Unauthorized');
 
  try {
-    const user = await db.user.findUnique({
+    // First, try to find the user
+    let user = await db.user.findUnique({
         where:{
         clerkUserId : userId,
     },
@@ -103,7 +104,26 @@ export async function getUserOnboardingStatus(data){
         }
        })
 
-       if(!user) throw new Error('user not found');
+       // If user doesn't exist, get their Clerk info and create them
+       if(!user) {
+        const { currentUser } = await import("@clerk/nextjs/server");
+        const clerkUser = await currentUser();
+        
+        if(!clerkUser) throw new Error('Clerk user not found');
+        
+        // Create the user in database
+        const name = `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim();
+        const newUser = await db.user.create({
+            data:{
+                clerkUserId:userId,
+                name,
+                imageUrl:clerkUser.imageUrl,
+                email:clerkUser.emailAddresses[0].emailAddress,
+            }
+        });
+        
+        user = { industry: newUser.industry };
+       }
 
        //it will return true if user is onboarded or false if user not onboarded
        return {

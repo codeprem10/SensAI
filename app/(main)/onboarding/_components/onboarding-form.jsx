@@ -45,6 +45,7 @@ const OnboardingForm = ({industries}) => {
       })
     } catch (error) {
       console.error("Onboarding error:",error);
+      toast.error("Failed to update profile. Please try again.");
     }
     
   };
@@ -54,6 +55,8 @@ const OnboardingForm = ({industries}) => {
       toast.success("Profile completed successfully");
       router.push('/dashboard');
       router.refresh();
+    } else if(updateResult && !updateLoading && !updateResult?.success){
+      toast.error("Failed to update profile. Please try again.");
     }
   },[updateLoading , updateResult])
 
