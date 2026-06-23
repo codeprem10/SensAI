@@ -152,12 +152,13 @@ function getMockQuiz(industry) {
 }
 
 export async function generateQuiz() {
-  let user = null; // Declare user outside try-catch for access in catch block
+  let user = null;
   
   try {
     // Check API key
     if (!process.env.GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY environment variable is not configured");
+      console.warn("⚠️ GEMINI_API_KEY not configured, using mock quiz");
+      throw new Error("API_KEY_MISSING");
     }
 
     // Authenticate user
@@ -203,66 +204,76 @@ export async function generateQuiz() {
 
     console.log("Generating quiz for industry:", user.industry);
     
-    // Call Gemini API
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
-    
-    console.log("Raw Gemini response:", text.substring(0, 200)); // Log first 200 chars
-
-    // Clean response - remove markdown code blocks if present
-    let cleanedText = text
-      .replace(/```json\n?/g, "")
-      .replace(/```\n?/g, "")
-      .trim();
-    
-    // Try to parse JSON
-    let quiz;
     try {
-      quiz = JSON.parse(cleanedText);
-    } catch (parseError) {
-      console.error("JSON Parse error:", parseError);
-      console.error("Attempted to parse:", cleanedText);
-      throw new Error("Invalid response format from AI - could not parse questions. Please try again.");
-    }
+      // Call Gemini API
+      const result = await model.generateContent(prompt);
+      const response = result.response;
+      const text = response.text();
+      
+      console.log("Raw Gemini response:", text.substring(0, 200));
 
-    // Validate the response structure
-    if (!quiz.questions || !Array.isArray(quiz.questions)) {
-      throw new Error("Invalid response structure - missing questions array");
-    }
+      // Clean response - remove markdown code blocks if present
+      let cleanedText = text
+        .replace(/```json\n?/g, "")
+        .replace(/```\n?/g, "")
+        .trim();
+      
+      // Try to parse JSON
+      let quiz;
+      try {
+        quiz = JSON.parse(cleanedText);
+      } catch (parseError) {
+        console.error("JSON Parse error:", parseError);
+        console.error("Attempted to parse:", cleanedText);
+        throw new Error("API_PARSE_ERROR");
+      }
 
-    if (quiz.questions.length === 0) {
-      throw new Error("No questions were generated. Please try again.");
-    }
+      // Validate the response structure
+      if (!quiz.questions || !Array.isArray(quiz.questions) || quiz.questions.length === 0) {
+        throw new Error("API_INVALID_STRUCTURE");
+      }
 
-    // Validate each question
-    for (let i = 0; i < quiz.questions.length; i++) {
-      const q = quiz.questions[i];
-      if (!q.question || !q.options || !q.correctAnswer || !q.explanation) {
-        throw new Error(`Question ${i + 1} is missing required fields. Please try again.`);
+      // Validate each question
+      for (let i = 0; i < quiz.questions.length; i++) {
+        const q = quiz.questions[i];
+        if (!q.question || !q.options || !q.correctAnswer || !q.explanation) {
+          throw new Error(`API_MISSING_FIELDS`);
+        }
+      }
+
+      console.log("Quiz generated successfully with", quiz.questions.length, "questions");
+      return quiz.questions;
+      
+    } catch (apiError) {
+      // If API fails, use mock quiz as fallback
+      const errorMsg = String(apiError?.message || "");
+      console.warn("⚠️ API Error detected, using mock quiz:", errorMsg);
+      
+      // Use mock quiz as fallback
+      if (user?.industry) {
+        const mockQuiz = getMockQuiz(user.industry);
+        console.log("📋 Returning mock quiz for industry:", user.industry);
+        return mockQuiz;
+      } else {
+        const mockQuiz = getMockQuiz("default");
+        console.log("📋 Returning default mock quiz");
+        return mockQuiz;
       }
     }
-
-    console.log("Quiz generated successfully with", quiz.questions.length, "questions");
-    return quiz.questions;
     
   } catch (error) {
-    console.error("Error generating quiz:", error.message || error);
+    console.error("generateQuiz error:", error);
     
-    // If API quota exceeded or API error, use mock quiz as fallback
-    if (
-      error.message?.includes("429") || 
-      error.message?.includes("quota") ||
-      error.message?.includes("Too Many Requests") ||
-      error.message?.includes("GEMINI_API_KEY")
-    ) {
-      console.warn("⚠️ Using mock quiz due to API quota limit or configuration issue");
-      const mockQuiz = getMockQuiz(user?.industry);
+    // Final fallback - return mock quiz for any error
+    if (user?.industry) {
+      const mockQuiz = getMockQuiz(user.industry);
+      console.log("✅ Final fallback: returning mock quiz for", user.industry);
+      return mockQuiz;
+    } else {
+      const mockQuiz = getMockQuiz("default");
+      console.log("✅ Final fallback: returning default mock quiz");
       return mockQuiz;
     }
-    
-    // For other errors, throw
-    throw error;
   }
 }
 
