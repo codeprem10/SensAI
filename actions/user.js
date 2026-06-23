@@ -11,73 +11,77 @@ export async function updateUser(data){
     const {userId} = await auth();
     if(!userId) throw new Error('Unauthorized');
 
-//to find user in db
-const user = await db.user.findUnique({
-    where:{
-        clerkUserId : userId,
-    }
-});
- if(!user) throw new Error('user not found');
-
- //connection to database
- try {
-    const result = await db.$transaction( 
-        //3 api calls :
-        async(tx)=>{ 
-            //1.find if industry exists
-            let industryInsight = await tx.industryInsight.findUnique({
-                where: {
-                    industry : data.industry,
-                }
-            });
-    //2.if industry does not exists , fill it with default values - later use ai to fill those values
-    if(!industryInsight){
-
-        // This is replaced by AI
-        // industryInsight = await tx.industryInsight.create({
-        //     data : {
-        //         industry : data.industry,
-        //         salaryRanges : [],
-        //         growthRate : 0 ,
-        //         demandLevel :'MEDIUM',
-        //         topSkills :  [],
-        //         marketOutLook  : 'NEUTRAL',
-        //         keyTrends : [],
-        //         recommendedSkills :[],
-        //         nextUpdate : new Date(Date.now() + 7*24*60*60*1000)
-        //     }
-        // })
-
-        // AI -generated:
-         const insights = await generateAIinsights(data.industry);
-        
-             industryInsight = await db.industryInsight.create({
-                    data:{
-                        industry:data.industry,
-                        ...insights,
-                        nextUpdate:new Date(Date.now() + 7*24*60*60*1000),
-                    }
-        });
-    }    
-    //3.update the user
-    const updatedUser = await tx.user.update({
+    //to find user in db
+    const user = await db.user.findUnique({
         where:{
-            id:user.id,
-        } , 
-        data:{
-            industry:data.industry,
-            experience : data.experience,
-            bio : data.bio,
-            skills : data.skills,
+            clerkUserId : userId,
         }
     });
+    if(!user) throw new Error('user not found');
 
-   return {updatedUser , industryInsight};
-    } ,
-     {
-        timeout:10000,
-    }
-);
+    //connection to database
+    try {
+        const result = await db.$transaction( 
+            //3 api calls :
+            async(tx)=>{ 
+                //1.find if industry exists
+                let industryInsight = await tx.industryInsight.findUnique({
+                    where: {
+                        industry : data.industry,
+                    }
+                });
+        
+                //2.if industry does not exists , fill it with default values - later use ai to fill those values
+                if(!industryInsight){
+                    try {
+                        // AI-generated insights
+                        const insights = await generateAIinsights(data.industry);
+                        
+                        industryInsight = await tx.industryInsight.create({
+                            data:{
+                                industry: data.industry,
+                                ...insights,
+                                nextUpdate: new Date(Date.now() + 7*24*60*60*1000),
+                            }
+                        });
+                    } catch (aiError) {
+                        console.warn("⚠️ Error generating AI insights, using defaults:", aiError);
+                        // Fallback to default insights
+                        industryInsight = await tx.industryInsight.create({
+                            data: {
+                                industry: data.industry,
+                                salaryRanges: [],
+                                growthRate: 0,
+                                demandLevel: 'Medium',
+                                topSkills: [],
+                                marketOutlook: 'Neutral',
+                                keyTrends: [],
+                                recommendedSkills: [],
+                                nextUpdate: new Date(Date.now() + 7*24*60*60*1000),
+                            }
+                        });
+                    }
+                }    
+        
+                //3.update the user
+                const updatedUser = await tx.user.update({
+                    where:{
+                        id: user.id,
+                    }, 
+                    data:{
+                        industry: data.industry,
+                        experience: data.experience,
+                        bio: data.bio,
+                        skills: data.skills,
+                    }
+                });
+
+                return {updatedUser, industryInsight};
+            } ,
+            {
+                timeout: 10000,
+            }
+        );
  
 
 return {success:true , ...result};    
